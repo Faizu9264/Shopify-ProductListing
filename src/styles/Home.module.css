@@ -1,10 +1,11 @@
 .main {
-  display: flex;
+  /* display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 6rem;
-  min-height: 100vh;
+  min-height: 100vh; */
+  margin-top: 1rem;
+  /* padding: 10px; */
 }
 
 .description {
@@ -226,4 +227,124 @@
   to {
     transform: rotate(0deg);
   }
+}
+
+ img.product-image {
+  border: none;
+  margin: auto;
+  display: block;
+  min-width: 250px;
+  max-width: 250px;
+  min-height: 250px;
+  max-height: 250px; 
+}
+
+
+
+
+ .product-section {
+  padding-top: 25px;
+  padding-bottom: 50px;
+  border-bottom: 2px solid #777;
+  padding-left: 25px;
+  padding-right: 25px;
+}
+.product-section-last {
+  padding-top: 25px;
+  padding-left: 25px;
+  padding-right: 25px;
+}
+.product-description-title {
+  font-size: 1.5rem;
+  padding-bottom: 20px;
+}
+
+.product-description-content {
+  font-size: 0.9rem;
+  color: rgba(25, 25, 25, 0.8);
+}
+
+.product-rating-title {
+  font-size: 1.5rem;
+  padding-bottom: 20px;
+}
+
+.product-rating-content {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.product-rating{
+  padding-bottom: 5px;
+}
+
+
+
+
+
+
+
+.exportButton {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.importButton {
+  margin-right: 10px;
+  font-weight: bold;
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.moreOptionsButton {
+  margin-right: 10px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.addProductButton {
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  background-color: #008060;
+  color: #fff;
+  padding: 10px 20px;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+}
+
+.addProductButton:hover {
+  background-color: #00644d;
+}
+
+.navbarContainer {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.navbarContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headingText {
+  font-size: 23px;
+  font-weight: 800;
+  margin: 0;
 }

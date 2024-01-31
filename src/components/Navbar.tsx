@@ -1,15 +1,15 @@
-
-
-
-import { Text, ButtonGroup, Popover, ActionList, Icon } from '@shopify/polaris';
-import React, { useState } from 'react';
-import { CaretDownIcon } from '@shopify/polaris-icons';
+import { Text, ButtonGroup, Popover, ActionList, Icon } from "@shopify/polaris";
+import React, { useState } from "react";
+import { CaretDownIcon } from "@shopify/polaris-icons";
+import styles from "@/styles/Home.module.css";
 
 const Navbar: React.FC = () => {
   const [popoverActive, setPopoverActive] = useState(false);
 
   const togglePopoverActive = () => {
-    setPopoverActive((popoverActive) => !popoverActive);
+    setTimeout(() => {
+      setPopoverActive((popoverActive) => !popoverActive);
+    }, 0);
   };
 
   const closePopover = () => {
@@ -18,38 +18,64 @@ const Navbar: React.FC = () => {
 
   const popoverActivator = (
     <ButtonGroup>
-      <button onClick={() => console.log('Export clicked')} style={{    padding: "10px 20px", background: 'none', border: 'none',  cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: 'bold' ,fontSize:"0.9rem"}}>Export</button>
-      <button onClick={() => console.log('Import clicked')} style={{marginRight: '10px', fontWeight: 'bold', background: 'none', border: 'none',   padding: "10px 20px", cursor: 'pointer', display: 'flex', alignItems: 'center' }}>Import</button>
+      <button
+        onClick={() => console.log("Export clicked")}
+        className={styles.exportButton}
+      >
+        Export
+      </button>
+      <button
+        onClick={() => console.log("Import clicked")}
+        className={styles.importButton}
+      >
+        Import
+      </button>
       <button
         onClick={togglePopoverActive}
-        style={{marginRight: '10px', background: 'none', border: 'none', padding: '0', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+        className={styles.moreOptionsButton}
       >
-        <span style={{ marginRight: '4px', margin: '0', fontWeight: 'bold' }}>More Options</span>
+        <span style={{ marginRight: "4px", margin: "0", fontWeight: "bold" }}>
+          More Options
+        </span>
         <Icon source={CaretDownIcon} />
       </button>
-      <button className="Polaris-Button--primary" onClick={() => console.log('Add Product clicked')} style={{backgroundColor: '#008060', color: '#fff',   padding: "10px 20px", fontWeight: 'bold' ,border:'none' ,borderRadius:'4px'}}>
-        <span className="polaris-Button__Content" style={{ fontWeight: '400',fontSize: '.875rem' }}>Add Product</span>
+      <button
+        className={`${styles.addProductButton} Polaris-Button--primary`}
+        onClick={() => console.log("Add Product clicked")}
+      >
+        <span
+          className="polaris-Button__Content"
+          style={{ fontWeight: "400", fontSize: ".875rem" }}
+        >
+          Add Product
+        </span>
       </button>
     </ButtonGroup>
   );
 
   const options = [
-    { content: 'Option A', onAction: () => console.log('Option A clicked') },
-    { content: 'Option B', onAction: () => console.log('Option B clicked') },
+    { content: "Option A", onAction: () => console.log("Option A clicked") },
+    { content: "Option B", onAction: () => console.log("Option B clicked") },
   ];
 
   return (
-
-    <div style={{  maxWidth: '100%', overflowX: 'hidden' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className={styles.navbarContainer}>
+      <div className={styles.navbarContent}>
         <div>
-          <Text variant="headingLg" as="p" style={{     fontSize: '23px',fontWeight: '800',margin: '0'}}>
+          <Text variant="headingLg" as="p" className={styles.headingText}>
             Products
           </Text>
         </div>
         <div>
-          <Popover active={popoverActive} activator={popoverActivator} onClose={closePopover} preferredAlignment="bottom">
-            <ActionList items={options}/>
+          <Popover
+            active={popoverActive}
+            activator={popoverActivator}
+            onClose={closePopover}
+            preferredAlignment="bottom"
+          >
+            <div>
+              <ActionList items={options} />
+            </div>
           </Popover>
         </div>
       </div>
@@ -58,4 +84,3 @@ const Navbar: React.FC = () => {
 };
 
 export default Navbar;
-
