@@ -50,7 +50,7 @@ const EmptyTable = () => {
   );
 
   return (
-    <LegacyCard >
+    <LegacyCard>
       <IndexTable
         condensed={useBreakpoints().smDown}
         resourceName={resourceName}

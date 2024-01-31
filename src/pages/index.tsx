@@ -1,19 +1,18 @@
-
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import axios from "axios";
-import Navbar from '../components/Navbar';
+import Navbar from "../components/Navbar";
 import { HomeProps } from "@/types/product";
 import Table from "@/components/Table";
-import Loading from "@/components/Loading"
+import Loading from "@/components/Loading";
 import { useEffect, useState } from "react";
-export default function Home({products}:HomeProps) {
+export default function Home({ products }: HomeProps) {
   const [loading, setLoading] = useState(true);
-  useEffect(()=>{
-    if(products.length>0){
-      setLoading(false)
+  useEffect(() => {
+    if (products.length > 0) {
+      setLoading(false);
     }
-  },[products])
+  }, [products]);
 
   return (
     <>
@@ -26,21 +25,22 @@ export default function Home({products}:HomeProps) {
       {loading ? (
         <Loading />
       ) : (
-      <>
-      <Navbar />
-      <main className={`${styles.main}`}>
-        <Table products={products} />
-      </main>   
-      </>)}
+        <>
+          <Navbar />
+          <main className={`${styles.main}`}>
+            <Table products={products} />
+          </main>
+        </>
+      )}
     </>
   );
 }
 
-
 export async function getServerSideProps() {
   try {
-    const apiUrl = process.env.PRODUCT_URL || "https://fakestoreapi.com/products";
-    
+    const apiUrl =
+      process.env.PRODUCT_URL || "https://fakestoreapi.com/products";
+
     const response = await axios.get(apiUrl);
     const products = response.data;
     return {
@@ -56,6 +56,3 @@ export async function getServerSideProps() {
     };
   }
 }
-
-
-

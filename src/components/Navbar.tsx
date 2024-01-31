@@ -73,9 +73,7 @@ const Navbar: React.FC = () => {
             onClose={closePopover}
             preferredAlignment="bottom"
           >
-            <div>
-              <ActionList items={options} />
-            </div>
+            <ActionList items={options} />
           </Popover>
         </div>
       </div>

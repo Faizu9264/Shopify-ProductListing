@@ -1,15 +1,12 @@
 import {
   ChoiceList,
-  TextField,
   LegacyCard,
   LegacyFilters,
-  DataTable,
   LegacyTabs,
   Badge,
 } from "@shopify/polaris";
 import { useState, useCallback } from "react";
 import { Product } from "@/types/product";
-// import Autocomplete from './Autocomplete';
 import EmptyTable from "./EmptyTable";
 import { IndexTable } from "@shopify/polaris";
 import { Text } from "@shopify/polaris";
