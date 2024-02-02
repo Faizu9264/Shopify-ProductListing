@@ -2,9 +2,11 @@ import { Text, ButtonGroup, Popover, ActionList, Icon } from "@shopify/polaris";
 import React, { useState } from "react";
 import { CaretDownIcon } from "@shopify/polaris-icons";
 import styles from "@/styles/Home.module.css";
+import AddProductModal from "./AddProductModal";
 
 const Navbar: React.FC = () => {
   const [popoverActive, setPopoverActive] = useState(false);
+  const [addProductModalOpen, setAddProductModalOpen] = useState(false);
 
   const togglePopoverActive = () => {
     setTimeout(() => {
@@ -15,7 +17,13 @@ const Navbar: React.FC = () => {
   const closePopover = () => {
     setPopoverActive(false);
   };
-
+  const handleAddProductClick = () => {
+    setAddProductModalOpen(true);
+  };
+  
+  const handleAddProductModalClose = () => {
+    setAddProductModalOpen(false);
+  };
   const popoverActivator = (
     <ButtonGroup>
       <button
@@ -41,7 +49,7 @@ const Navbar: React.FC = () => {
       </button>
       <button
         className={`${styles.addProductButton} Polaris-Button--primary`}
-        onClick={() => console.log("Add Product clicked")}
+        onClick={handleAddProductClick}
       >
         <span
           className="polaris-Button__Content"
@@ -77,6 +85,20 @@ const Navbar: React.FC = () => {
           </Popover>
         </div>
       </div>
+      {addProductModalOpen && (
+      <AddProductModal
+        open={addProductModalOpen}
+        onClose={handleAddProductModalClose}
+        onSubmit={() => {
+          // Handle the submit logic here
+          console.log('Product submitted!');
+          // You may want to perform the actual product addition logic here
+          // For example, sending a request to your server to add the product
+          // After the product is successfully added, close the modal
+          handleAddProductModalClose();
+        }}
+      />
+    )}
     </div>
   );
 };

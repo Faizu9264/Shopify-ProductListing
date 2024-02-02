@@ -349,3 +349,85 @@
   margin: 0;
 }
 
+/* Add Product Modal  */
+
+.imageContainer {
+  position: relative;
+  display: inline-block;
+  padding-left: 10px;
+}
+
+
+.removeButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  /* background-color: red; */
+  border: none;
+  cursor: pointer;
+}
+
+.uploadedFilesContainer {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.uploadedFilesContainer > div {
+  margin-right: 16px;
+  margin-bottom: 16px;
+}
+
+.customUploadImage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.errorMessage {
+  text-align: center;
+  color: red;
+  margin-top: 10px;
+}
+
+.uploadContainer {
+  text-align: center;
+  margin-top: 30px;
+}
+.otherImagesWrapper {
+  width: 100%;
+  height: 100%;
+}
+
+
+.Polaris-Thumbnail--sizeMedium {
+  /* width: var(--pc-thumbnail-medium-size); */
+  width: 200px !important;
+margin-top: 10px;
+}
+
+.validImageTypes {
+  color: rgb(18, 64, 133);
+  font-weight: bold;
+}
+
+
+.imageContainer:hover .zoomedImage img {
+  transform: scale(1.2);
+}
+
+.zoomedImage {
+  overflow: hidden;
+}
+
+.zoomedImage img {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s ease-in-out;
+}
+
+.labelStyle {
+  margin-bottom: 2px;
+  font-size: 15px;
+  font-weight: 600;
+}
