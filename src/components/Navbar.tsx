@@ -21,7 +21,7 @@ const Navbar: React.FC = () => {
   const handleAddProductClick = () => {
     setAddProductModalOpen(true);
   };
-  
+
   const handleAddProductModalClose = () => {
     setAddProductModalOpen(false);
   };
@@ -87,14 +87,14 @@ const Navbar: React.FC = () => {
         </div>
       </div>
       {addProductModalOpen && (
-      <AddProductModal
-        open={addProductModalOpen}
-        onClose={handleAddProductModalClose}
-        onSubmit={() => {
-          handleAddProductModalClose();
-        }}
-      />
-    )}
+        <AddProductModal
+          open={addProductModalOpen}
+          onClose={handleAddProductModalClose}
+          onSubmit={() => {
+            handleAddProductModalClose();
+          }}
+        />
+      )}
       <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );

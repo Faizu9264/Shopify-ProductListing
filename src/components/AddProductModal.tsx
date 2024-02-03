@@ -16,7 +16,7 @@ import { NoteIcon } from "@shopify/polaris-icons";
 import { LegacyCard } from "@shopify/polaris";
 import { XCircleIcon } from "@shopify/polaris-icons";
 import { ToastContainer, toast } from "react-toastify";
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "@/styles/Home.module.css";
 import { useSelector } from "react-redux";
@@ -27,7 +27,7 @@ import { useDispatch } from "react-redux";
 import { addProduct } from "@/redux/productSlice";
 import uploadFileProgress from "@/firebase/uploadFileProgress";
 import { Autocomplete } from "@shopify/polaris";
-import { Magnifier, GlassMagnifier } from 'react-image-magnifiers';
+import { Magnifier, GlassMagnifier } from "react-image-magnifiers";
 
 const ReactQuill = dynamic(() => import("react-quill"), {
   ssr: false,
@@ -146,9 +146,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
             onMouseOver={() => handleImageZoom(index)}
             onMouseOut={() => setZoomedIndex(null)}
           >
-            <div style={{width:'50px',height:'50px'}}>
-
-            </div>
+            <div style={{ width: "50px", height: "50px" }}></div>
             <Magnifier
               imageSrc={window.URL.createObjectURL(file)}
               // alt={file.name}
@@ -266,13 +264,15 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       );
       const sanitizedDescription = DOMPurify.sanitize(productDescription);
 
-      // Clean the HTML content before setting it in the editor
-      const cleanedDescription = sanitizedDescription.replace(/<\/?[^>]+(>|$)/g, '');
+      const cleanedDescription = sanitizedDescription.replace(
+        /<\/?[^>]+(>|$)/g,
+        ""
+      );
       const product: Product = {
         id: Date.now(),
         title: newProductTitle,
         price: parseFloat(priceFieldValue),
-        description:cleanedDescription,
+        description: cleanedDescription,
         category,
         image: uploadedImageUrls,
         inventory,
@@ -294,14 +294,11 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       setType("");
       setVendor("");
       setStatus("active");
-     
+
       dispatch(addProduct(product));
       setTimeout(() => {
-      
         toast.success("Product added successfully!");
-      
       }, 100);
-
     } catch (error) {
       console.error("Error uploading images:", error);
       toast.error("Error adding product. Please try again.");

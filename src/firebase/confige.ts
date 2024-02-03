@@ -3,7 +3,7 @@ import { initializeApp } from 'firebase/app';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBVvNBBL0Wh26T0BALSWX87YQxi7RMSaGM",
+    apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
     authDomain: "shopify-productlisting.firebaseapp.com",
     projectId: "shopify-productlisting",
     storageBucket: "shopify-productlisting.appspot.com",
