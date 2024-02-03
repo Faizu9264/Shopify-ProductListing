@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { CaretDownIcon } from "@shopify/polaris-icons";
 import styles from "@/styles/Home.module.css";
 import AddProductModal from "./AddProductModal";
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 
 const Navbar: React.FC = () => {
   const [popoverActive, setPopoverActive] = useState(false);
@@ -91,11 +91,11 @@ const Navbar: React.FC = () => {
         open={addProductModalOpen}
         onClose={handleAddProductModalClose}
         onSubmit={() => {
-          toast.success("Product added successfully!");
           handleAddProductModalClose();
         }}
       />
     )}
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 };

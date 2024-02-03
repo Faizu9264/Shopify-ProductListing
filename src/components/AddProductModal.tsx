@@ -1,10 +1,4 @@
-
-
-
-
-
-
-import React, { useState, useCallback} from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   Modal,
   AppProvider,
@@ -14,7 +8,7 @@ import {
   LegacyStack,
   Thumbnail,
   Spinner,
-  Icon ,
+  Icon,
 } from "@shopify/polaris";
 import dynamic from "next/dynamic";
 import "react-quill/dist/quill.snow.css";
@@ -22,19 +16,30 @@ import { NoteIcon } from "@shopify/polaris-icons";
 import { LegacyCard } from "@shopify/polaris";
 import { XCircleIcon } from "@shopify/polaris-icons";
 import { ToastContainer, toast } from "react-toastify";
+import DOMPurify from 'dompurify';
 import "react-toastify/dist/ReactToastify.css";
 import styles from "@/styles/Home.module.css";
-import { Select } from "@shopify/polaris";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Checkbox } from "@shopify/polaris";
 import { Product } from "@/types/product";
-import { useDispatch } from 'react-redux';
+import { useDispatch } from "react-redux";
 import { addProduct } from "@/redux/productSlice";
-import uploadFileProgress from "@/firebase/uploadFileProgress"; 
+import uploadFileProgress from "@/firebase/uploadFileProgress";
+import { Autocomplete } from "@shopify/polaris";
+import { Magnifier, GlassMagnifier } from 'react-image-magnifiers';
+
 const ReactQuill = dynamic(() => import("react-quill"), {
   ssr: false,
 });
+
+type AutocompleteOption = {
+  title: string;
+  options: {
+    value: string;
+    label: string;
+  }[];
+};
 
 interface AddProductModalProps {
   open: boolean;
@@ -71,6 +76,16 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
+  const [defaultCategory] = categories;
+  const [defaultInventory] = inventoryList;
+  const [defaultType] = types;
+  const [defaultVendor] = vendors;
+  useEffect(() => {
+    setCategory(defaultCategory);
+    setInventory(defaultInventory);
+    setType(defaultType);
+    setVendor(defaultVendor);
+  }, [defaultCategory, defaultInventory, defaultType, defaultVendor]);
 
   const validImageTypes = ["image/gif", "image/jpeg", "image/png"];
   const handleTitleChange = (value: string) => {
@@ -110,9 +125,49 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     (value: string) => setVendor(value),
     []
   );
-  const handleStatusChange = (checked: boolean) => {
-    setStatus(checked ? "active" : "draft");
+  const handleStatusChange = (status: string) => {
+    setStatus(status);
   };
+
+  const handleImageZoom = (index: number) => {
+    setZoomedIndex(index);
+  };
+  const uploadedFiles = files.length > 0 && (
+    <div className={styles.uploadedFilesContainer}>
+      {files.map((file, index) => (
+        <div
+          className={`${styles.imageContainer} ${
+            index === 0 ? styles.firstImage : styles.otherImages
+          }`}
+          key={index}
+        >
+          <div
+            className={styles.zoomedImage}
+            onMouseOver={() => handleImageZoom(index)}
+            onMouseOut={() => setZoomedIndex(null)}
+          >
+            <div style={{width:'50px',height:'50px'}}>
+
+            </div>
+            <Magnifier
+              imageSrc={window.URL.createObjectURL(file)}
+              // alt={file.name}
+              // width={120}
+              // height={120}
+            />
+          </div>
+          <button
+            className={styles.removeButton}
+            type="button"
+            onClick={() => handleRemoveImage(index)}
+          >
+            <Icon source={XCircleIcon} tone="base" />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+
   const handleDropZoneDrop = async (
     dropFiles: File[],
     _acceptedFiles: File[],
@@ -142,111 +197,116 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     setLoading(false);
   };
 
-  const handleFormSubmit = async() => {
-  
+  const handleFormSubmit = async () => {
     if (!newProductTitle) {
-     return  toast.error("Please enter a product title")
+      return toast.error("Please enter a product title");
     }
-  
+
     if (!productDescription) {
-     return  toast.error("Please enter a product description")
+      return toast.error("Please enter a product description");
     }
-  
+
     if (files.length === 0) {
-      return toast.error("Please upload at least one image")
+      return toast.error("Please upload at least one image");
     }
 
-  if (!ratingRate) {
-    toast.error("Please enter a rating rate");
-    return;
-  }
+    if (!ratingRate) {
+      toast.error("Please enter a rating rate");
+      return;
+    }
 
-  if (!ratingCount) {
-    toast.error("Please enter a rating count");
-    return;
-  }
+    if (!ratingCount) {
+      toast.error("Please enter a rating count");
+      return;
+    }
 
-  if (!category) {
-    toast.error("Please select a category");
-    return;
-  }
+    if (!category) {
+      toast.error("Please select a category");
+      return;
+    }
 
-  if (!inventory) {
-    toast.error("Please select an inventory");
-    return;
-  }
+    if (!inventory) {
+      toast.error("Please select an inventory");
+      return;
+    }
 
-  if (!type) {
-    toast.error("Please select a type");
-    return;
-  }
+    if (!type) {
+      toast.error("Please select a type");
+      return;
+    }
 
-  if (!vendor) {
-    toast.error("Please select a vendor");
-    return;
-  }
+    if (!vendor) {
+      toast.error("Please select a vendor");
+      return;
+    }
 
-  if (!priceFieldValue) {
-    toast.error("Please enter a product price");
-    return;
-  }
+    if (!priceFieldValue) {
+      toast.error("Please enter a product price");
+      return;
+    }
 
-  const rating = {
-    rate: parseFloat(ratingRate),
-    count: parseInt(ratingCount, 10),
-  };
-  
-  try {
-    const uploadedImageUrls = await Promise.all(
-      files.map(async (file, index) => {
-        const imageUrl = await uploadFileProgress(
-          file,
-          'products',
-          `${Date.now()}_${index}_${file.name}`,
-          (progress) => {
-    
-            // setProgress(progress);
-          }
-        );
-        return imageUrl;
-      })
-    );
-
-    const product: Product = {
-      id: Date.now(),
-      title: newProductTitle,
-      price: parseFloat(priceFieldValue),
-      description: productDescription,
-      category,
-      image: uploadedImageUrls, 
-      inventory,
-      type,
-      vendor,
-      status,
-      rating,
+    const rating = {
+      rate: parseFloat(ratingRate),
+      count: parseInt(ratingCount, 10),
     };
-    onSubmit(product);
-    setNewProductTitle("");
-    setProductDescription("");
-    setFiles([]);
-    setRatingRate("");
-    setRatingCount("");
-    setPriceFieldValue("");
-    setCategory("");
-    setInventory("");
-    setType("");
-    setVendor("");
-    setStatus("active");
 
+    try {
+      const uploadedImageUrls = await Promise.all(
+        files.map(async (file, index) => {
+          const imageUrl = await uploadFileProgress(
+            file,
+            "products",
+            `${Date.now()}_${index}_${file.name}`,
+            (progress) => {
+              // setProgress(progress);
+            }
+          );
+          return imageUrl;
+        })
+      );
+      const sanitizedDescription = DOMPurify.sanitize(productDescription);
 
-    dispatch(addProduct(product));
-  } catch (error) {
-    console.error("Error uploading images:", error);
-    toast.error("Error adding product. Please try again.");
-  }
+      // Clean the HTML content before setting it in the editor
+      const cleanedDescription = sanitizedDescription.replace(/<\/?[^>]+(>|$)/g, '');
+      const product: Product = {
+        id: Date.now(),
+        title: newProductTitle,
+        price: parseFloat(priceFieldValue),
+        description:cleanedDescription,
+        category,
+        image: uploadedImageUrls,
+        inventory,
+        type,
+        vendor,
+        status,
+        rating,
+      };
+
+      onSubmit(product);
+      setNewProductTitle("");
+      setProductDescription("");
+      setFiles([]);
+      setRatingRate("");
+      setRatingCount("");
+      setPriceFieldValue("");
+      setCategory("");
+      setInventory("");
+      setType("");
+      setVendor("");
+      setStatus("active");
+     
+      dispatch(addProduct(product));
+      setTimeout(() => {
+      
+        toast.success("Product added successfully!");
+      
+      }, 100);
+
+    } catch (error) {
+      console.error("Error uploading images:", error);
+      toast.error("Error adding product. Please try again.");
+    }
   };
-  
-  
 
   const handleRemoveImage = (index: number) => {
     const updatedFiles = [...files];
@@ -255,44 +315,44 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     toast.success("Image removed successfully!");
   };
 
-  const uploadedFiles = files.length > 0 && (
-    <div className={styles.uploadedFilesContainer}>
-      {files.map((file, index) => (
-        <div
-          className={`${styles.imageContainer} ${
-            index === 0 ? styles.firstImage : styles.otherImages
-          }`}
-          key={index}
-        >
-          <div
-            style={{
-              width: index === 0 ? "125px" : "80px",
-              height: index === 0 ? "125px" : "80px",
-            }}
-            className={`${styles.zoomedImage} zoomedImage`}
-            onMouseOver={() => setZoomedIndex(index)}
-            onMouseOut={() => setZoomedIndex(null)}
-          >
-            <Thumbnail
-              alt={file.name}
-              source={
-                validImageTypes.indexOf(file.type) > -1
-                  ? window.URL.createObjectURL(file)
-                  : NoteIcon
-              }
-            />
-          </div>
-          <button
-            className={styles.removeButton}
-            type="button"
-            onClick={() => handleRemoveImage(index)}
-          >
-            <Icon source={XCircleIcon} tone="base" />
-          </button>
-        </div>
-      ))}
-    </div>
-  );
+  const categoryOptions = categories.map((category) => ({
+    value: category,
+    label: category,
+  }));
+
+  const inventoryOptions = inventoryList.map((inventory) => ({
+    value: inventory,
+    label: inventory,
+  }));
+
+  const typeOptions = types.map((type) => ({
+    value: type,
+    label: type,
+  }));
+
+  const vendorOptions = vendors.map((vendor) => ({
+    value: vendor,
+    label: vendor,
+  }));
+
+  const autoCompleteOptions: AutocompleteOption[] = [
+    {
+      title: "Categories",
+      options: categoryOptions,
+    },
+    {
+      title: "Inventory",
+      options: inventoryOptions,
+    },
+    {
+      title: "Types",
+      options: typeOptions,
+    },
+    {
+      title: "Vendors",
+      options: vendorOptions,
+    },
+  ];
 
   return (
     <AppProvider>
@@ -374,23 +434,25 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
               <Checkbox
                 label="Active"
                 checked={status === "active"}
-                onChange={() => handleStatusChange(true)}
+                onChange={() => handleStatusChange("active")}
               />
               <Checkbox
                 label="Draft"
                 checked={status === "draft"}
-                onChange={() => handleStatusChange(false)}
+                onChange={() => handleStatusChange("draft")}
               />
               <Checkbox
                 label="Archived"
                 checked={status === "archived"}
-                onChange={() => handleStatusChange(false)}
+                onChange={() => handleStatusChange("archived")}
               />
             </div>
           </LegacyCard>
           <LegacyCard sectioned>
             <div style={{ marginTop: "16px", display: "flex", gap: "16px" }}>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              <div
+                style={{ flex: 1, display: "flex", flexDirection: "column" }}
+              >
                 <label className={styles.labelStyle}>Rating Rate</label>
                 <TextField
                   type="number"
@@ -400,7 +462,9 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                 />
               </div>
 
-              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              <div
+                style={{ flex: 1, display: "flex", flexDirection: "column" }}
+              >
                 <label className={styles.labelStyle}>Rating Count</label>
                 <TextField
                   type="number"
@@ -414,28 +478,50 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
           {/* Category, Inventory */}
           <LegacyCard sectioned>
             <div style={{ marginTop: "16px", display: "flex", gap: "16px" }}>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              <div
+                style={{ flex: 1, display: "flex", flexDirection: "column" }}
+              >
                 <label className={styles.labelStyle}>Category</label>
-                <Select
-                  label=""
-                  options={categories.map((category) => ({
-                    label: category,
-                    value: category,
-                  }))}
-                  value={category}
-                  onChange={handleCategoryChange}
+                <Autocomplete
+                  options={
+                    autoCompleteOptions.find(
+                      (option) => option.title === "Categories"
+                    )?.options || []
+                  }
+                  selected={category}
+                  onSelect={(selected: string[]) =>
+                    setCategory(selected[0] || "")
+                  }
+                  textField={
+                    <TextField
+                      label=""
+                      value={category}
+                      onChange={handleCategoryChange}
+                    />
+                  }
                 />
               </div>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              <div
+                style={{ flex: 1, display: "flex", flexDirection: "column" }}
+              >
                 <label className={styles.labelStyle}>Inventory</label>
-                <Select
-                  type="number"
-                  options={inventoryList.map((inventory) => ({
-                    label: inventory,
-                    value: inventory,
-                  }))}
-                  value={inventory}
-                  onChange={handleInventoryChange}
+                <Autocomplete
+                  options={
+                    autoCompleteOptions.find(
+                      (option) => option.title === "Inventory"
+                    )?.options || []
+                  }
+                  selected={inventory}
+                  onSelect={(selected: string[]) =>
+                    setInventory(selected[0] || "")
+                  }
+                  textField={
+                    <TextField
+                      label=""
+                      value={inventory as string}
+                      onChange={handleInventoryChange}
+                    />
+                  }
                 />
               </div>
             </div>
@@ -443,25 +529,48 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
           {/* Type, Vendor */}
           <LegacyCard sectioned>
             <div style={{ marginTop: "16px", display: "flex", gap: "16px" }}>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              <div
+                style={{ flex: 1, display: "flex", flexDirection: "column" }}
+              >
                 <label className={styles.labelStyle}>Type</label>
-                <Select
-                  label=""
-                  options={types.map((type) => ({ label: type, value: type }))}
-                  value={type}
-                  onChange={handleTypeChange}
+                <Autocomplete
+                  options={
+                    autoCompleteOptions.find(
+                      (option) => option.title === "Types"
+                    )?.options || []
+                  }
+                  selected={type}
+                  onSelect={(selected: string[]) => setType(selected[0] || "")}
+                  textField={
+                    <TextField
+                      label=""
+                      value={type}
+                      onChange={handleTypeChange}
+                    />
+                  }
                 />
               </div>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              <div
+                style={{ flex: 1, display: "flex", flexDirection: "column" }}
+              >
                 <label className={styles.labelStyle}>Vendor</label>
-                <Select
-                  label=""
-                  options={vendors.map((vendor) => ({
-                    label: vendor,
-                    value: vendor,
-                  }))}
-                  value={vendor}
-                  onChange={handleVendorChange}
+                <Autocomplete
+                  options={
+                    autoCompleteOptions.find(
+                      (option) => option.title === "Vendors"
+                    )?.options || []
+                  }
+                  selected={vendor}
+                  onSelect={(selected: string[]) =>
+                    setVendor(selected[0] || "")
+                  }
+                  textField={
+                    <TextField
+                      label=""
+                      value={vendor}
+                      onChange={handleVendorChange}
+                    />
+                  }
                 />
               </div>
             </div>
@@ -474,15 +583,16 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                   Product Price :
                 </label>
               </LegacyStack.Item>
-
-              <TextField
-                label="Price"
-                labelHidden
-                value={priceFieldValue}
-                onChange={handlePriceFieldChange}
-                autoComplete="off"
-                align="right"
-              />
+              <LegacyCard sectioned>
+                <TextField
+                  label="Price"
+                  labelHidden
+                  value={priceFieldValue}
+                  onChange={handlePriceFieldChange}
+                  autoComplete="off"
+                  align="right"
+                />
+              </LegacyCard>
             </LegacyStack>
           </div>
         </FormLayout>

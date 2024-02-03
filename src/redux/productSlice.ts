@@ -29,7 +29,7 @@ const productSlice = createSlice({
       state.Types = Array.from(new Set(action.payload.map(product => product.type)));
     },
     addProduct: (state, action: PayloadAction<Product>) => {
-      state.items = [...state.items, action.payload];
+      state.items = [action.payload,...state.items];
       state.categories = Array.from(new Set(state.items.map(product => product.category)));
       state.vendors = Array.from(new Set(state.items.map(product => product.vendor)));
       state.inventory = Array.from(new Set(state.items.map(product => String(product.inventory))));
