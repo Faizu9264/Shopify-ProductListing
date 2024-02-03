@@ -6,13 +6,19 @@ import { HomeProps } from "@/types/product";
 import Table from "@/components/Table";
 import Loading from "@/components/Loading";
 import { useEffect, useState } from "react";
+import { useDispatch } from 'react-redux';
+import { setProducts } from '../redux/productSlice';
+
 export default function Home({ products }: HomeProps) {
   const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+
   useEffect(() => {
     if (products.length > 0) {
       setLoading(false);
+      dispatch(setProducts(products));
     }
-  }, [products]);
+  }, [products, dispatch]);
 
   return (
     <>
@@ -21,6 +27,7 @@ export default function Home({ products }: HomeProps) {
         <meta name="description" content="Product listing" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+        
       </Head>
       {loading ? (
         <Loading />

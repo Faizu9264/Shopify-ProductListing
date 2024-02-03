@@ -35,12 +35,15 @@ const ProductModal: React.FC<ProductModalProps> = ({
       <Modal open={modalActive} onClose={closeModal} title={product?.title}>
         <div className={styles["product-section"]}>
           <Modal.Section>
-            <section className={styles["product-section"]}>
-              <img
-                src={product?.image}
-                alt={product?.title}
-                className={styles["product-image"]}
-              />
+          <section className={styles["product-section"]}>
+              {product?.image.map((imageUrl, index) => (
+                <img
+                  key={index}
+                  src={imageUrl}
+                  alt={`${product?.title}-image-${index}`}
+                  className={styles["product-image"]}
+                />
+              ))}
             </section>
           </Modal.Section>
           <Modal.Section>

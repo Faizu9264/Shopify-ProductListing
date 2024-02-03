@@ -4,7 +4,7 @@ export interface Product {
     price: number;
     description: string;
     category: string;
-    image: string;
+    image: string[];
     inventory:string|number;
     type:string;
     vendor:string;

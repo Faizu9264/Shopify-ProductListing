@@ -1,4 +1,10 @@
-import React, { useState, useCallback } from "react";
+
+
+
+
+
+
+import React, { useState, useCallback} from "react";
 import {
   Modal,
   AppProvider,
@@ -8,22 +14,32 @@ import {
   LegacyStack,
   Thumbnail,
   Spinner,
+  Icon ,
 } from "@shopify/polaris";
-import ReactQuill from "react-quill";
+import dynamic from "next/dynamic";
 import "react-quill/dist/quill.snow.css";
 import { NoteIcon } from "@shopify/polaris-icons";
 import { LegacyCard } from "@shopify/polaris";
 import { XCircleIcon } from "@shopify/polaris-icons";
-import { Icon } from "@shopify/polaris";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "@/styles/Home.module.css";
 import { Select } from "@shopify/polaris";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { Checkbox } from "@shopify/polaris";
+import { Product } from "@/types/product";
+import { useDispatch } from 'react-redux';
+import { addProduct } from "@/redux/productSlice";
+import uploadFileProgress from "@/firebase/uploadFileProgress"; 
+const ReactQuill = dynamic(() => import("react-quill"), {
+  ssr: false,
+});
 
 interface AddProductModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: () => void;
+  onSubmit: (product: Product) => void;
 }
 
 const AddProductModal: React.FC<AddProductModalProps> = ({
@@ -31,6 +47,17 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
   onClose,
   onSubmit,
 }) => {
+  const dispatch = useDispatch();
+
+  const categories = useSelector(
+    (state: RootState) => state.products.categories
+  );
+  const vendors = useSelector((state: RootState) => state.products.vendors);
+  const inventoryList = useSelector(
+    (state: RootState) => state.products.inventory
+  );
+  const [status, setStatus] = useState<string>("active");
+  const types = useSelector((state: RootState) => state.products.Types);
   const [newProductTitle, setNewProductTitle] = useState("");
   const [productDescription, setProductDescription] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -44,8 +71,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
-  const validImageTypes = ["image/gif", "image/jpeg", "image/png"];
 
+  const validImageTypes = ["image/gif", "image/jpeg", "image/png"];
   const handleTitleChange = (value: string) => {
     setNewProductTitle(value);
   };
@@ -83,6 +110,9 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     (value: string) => setVendor(value),
     []
   );
+  const handleStatusChange = (checked: boolean) => {
+    setStatus(checked ? "active" : "draft");
+  };
   const handleDropZoneDrop = async (
     dropFiles: File[],
     _acceptedFiles: File[],
@@ -112,18 +142,111 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     setLoading(false);
   };
 
-  const handleFormSubmit = () => {
-    if (errorMessage) {
-      console.error(errorMessage);
-    } else {
-      const rating = {
-        rate: parseFloat(ratingRate),
-        count: parseInt(ratingCount, 10),
-      };
-
-      onSubmit();
+  const handleFormSubmit = async() => {
+  
+    if (!newProductTitle) {
+     return  toast.error("Please enter a product title")
     }
+  
+    if (!productDescription) {
+     return  toast.error("Please enter a product description")
+    }
+  
+    if (files.length === 0) {
+      return toast.error("Please upload at least one image")
+    }
+
+  if (!ratingRate) {
+    toast.error("Please enter a rating rate");
+    return;
+  }
+
+  if (!ratingCount) {
+    toast.error("Please enter a rating count");
+    return;
+  }
+
+  if (!category) {
+    toast.error("Please select a category");
+    return;
+  }
+
+  if (!inventory) {
+    toast.error("Please select an inventory");
+    return;
+  }
+
+  if (!type) {
+    toast.error("Please select a type");
+    return;
+  }
+
+  if (!vendor) {
+    toast.error("Please select a vendor");
+    return;
+  }
+
+  if (!priceFieldValue) {
+    toast.error("Please enter a product price");
+    return;
+  }
+
+  const rating = {
+    rate: parseFloat(ratingRate),
+    count: parseInt(ratingCount, 10),
   };
+  
+  try {
+    const uploadedImageUrls = await Promise.all(
+      files.map(async (file, index) => {
+        const imageUrl = await uploadFileProgress(
+          file,
+          'products',
+          `${Date.now()}_${index}_${file.name}`,
+          (progress) => {
+    
+            // setProgress(progress);
+          }
+        );
+        return imageUrl;
+      })
+    );
+
+    const product: Product = {
+      id: Date.now(),
+      title: newProductTitle,
+      price: parseFloat(priceFieldValue),
+      description: productDescription,
+      category,
+      image: uploadedImageUrls, 
+      inventory,
+      type,
+      vendor,
+      status,
+      rating,
+    };
+    onSubmit(product);
+    setNewProductTitle("");
+    setProductDescription("");
+    setFiles([]);
+    setRatingRate("");
+    setRatingCount("");
+    setPriceFieldValue("");
+    setCategory("");
+    setInventory("");
+    setType("");
+    setVendor("");
+    setStatus("active");
+
+
+    dispatch(addProduct(product));
+  } catch (error) {
+    console.error("Error uploading images:", error);
+    toast.error("Error adding product. Please try again.");
+  }
+  };
+  
+  
 
   const handleRemoveImage = (index: number) => {
     const updatedFiles = [...files];
@@ -199,14 +322,18 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
             onChange={handleTitleChange}
             labelHidden
           />
-          <div style={{ marginTop: "16px" }}>
-            <label className={styles.labelStyle}>Product Description</label>
-            <ReactQuill
-              theme="snow"
-              value={productDescription}
-              onChange={handleDescriptionChange}
-            />
-          </div>
+          <LegacyCard sectioned>
+            <div style={{ marginTop: "16px" }}>
+              <label className={styles.labelStyle}>Product Description</label>
+              {typeof window !== "undefined" && (
+                <ReactQuill
+                  theme="snow"
+                  value={productDescription}
+                  onChange={handleDescriptionChange}
+                />
+              )}
+            </div>
+          </LegacyCard>
           <div style={{ marginTop: "16px" }}>
             <label className={styles.labelStyle}>Product Images</label>
             <LegacyCard sectioned>
@@ -241,84 +368,104 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
               </DropZone>
             </LegacyCard>
           </div>
-
-          <div style={{ marginTop: "16px", display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <label className={styles.labelStyle}>Rating Rate</label>
-              <TextField
-                type="number"
-                value={ratingRate}
-                onChange={handleRatingRateChange}
-                autoComplete="off"
+          <LegacyCard sectioned>
+            <label className={styles.labelStyle}>Status</label>
+            <div style={{ marginTop: "16px", display: "flex", gap: "16px" }}>
+              <Checkbox
+                label="Active"
+                checked={status === "active"}
+                onChange={() => handleStatusChange(true)}
+              />
+              <Checkbox
+                label="Draft"
+                checked={status === "draft"}
+                onChange={() => handleStatusChange(false)}
+              />
+              <Checkbox
+                label="Archived"
+                checked={status === "archived"}
+                onChange={() => handleStatusChange(false)}
               />
             </div>
+          </LegacyCard>
+          <LegacyCard sectioned>
+            <div style={{ marginTop: "16px", display: "flex", gap: "16px" }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                <label className={styles.labelStyle}>Rating Rate</label>
+                <TextField
+                  type="number"
+                  value={ratingRate}
+                  onChange={handleRatingRateChange}
+                  autoComplete="off"
+                />
+              </div>
 
-            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <label className={styles.labelStyle}>Rating Count</label>
-              <TextField
-                type="number"
-                value={ratingCount}
-                onChange={handleRatingCountChange}
-                autoComplete="off"
-              />
+              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                <label className={styles.labelStyle}>Rating Count</label>
+                <TextField
+                  type="number"
+                  value={ratingCount}
+                  onChange={handleRatingCountChange}
+                  autoComplete="off"
+                />
+              </div>
             </div>
-          </div>
-
+          </LegacyCard>
           {/* Category, Inventory */}
-          <div style={{ marginTop: "16px", display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <label className={styles.labelStyle}>Category</label>
-              <Select
-                label=""
-                options={[
-                  { label: "Category 1", value: "category1" },
-                  { label: "Category 2", value: "category2" },
-                  // Add more categories as needed
-                ]}
-                value={category}
-                onChange={handleCategoryChange}
-              />
+          <LegacyCard sectioned>
+            <div style={{ marginTop: "16px", display: "flex", gap: "16px" }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                <label className={styles.labelStyle}>Category</label>
+                <Select
+                  label=""
+                  options={categories.map((category) => ({
+                    label: category,
+                    value: category,
+                  }))}
+                  value={category}
+                  onChange={handleCategoryChange}
+                />
+              </div>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                <label className={styles.labelStyle}>Inventory</label>
+                <Select
+                  type="number"
+                  options={inventoryList.map((inventory) => ({
+                    label: inventory,
+                    value: inventory,
+                  }))}
+                  value={inventory}
+                  onChange={handleInventoryChange}
+                />
+              </div>
             </div>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <label className={styles.labelStyle}>Inventory</label>
-              <TextField
-                type="number"
-                value={inventory}
-                onChange={handleInventoryChange}
-                autoComplete="off"
-              />
-            </div>
-          </div>
-
+          </LegacyCard>
           {/* Type, Vendor */}
-          <div style={{ marginTop: "16px", display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <label className={styles.labelStyle}>Type</label>
-              <Select
-                label=""
-                options={[
-                  { label: "Type 1", value: "type1" },
-                  { label: "Type 2", value: "type2" },
-                  // Add more types as needed
-                ]}
-                value={type}
-                onChange={handleTypeChange}
-              />
+          <LegacyCard sectioned>
+            <div style={{ marginTop: "16px", display: "flex", gap: "16px" }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                <label className={styles.labelStyle}>Type</label>
+                <Select
+                  label=""
+                  options={types.map((type) => ({ label: type, value: type }))}
+                  value={type}
+                  onChange={handleTypeChange}
+                />
+              </div>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                <label className={styles.labelStyle}>Vendor</label>
+                <Select
+                  label=""
+                  options={vendors.map((vendor) => ({
+                    label: vendor,
+                    value: vendor,
+                  }))}
+                  value={vendor}
+                  onChange={handleVendorChange}
+                />
+              </div>
             </div>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <label className={styles.labelStyle}>Vendor</label>
-              <Select
-                label=""
-                options={[
-                  { label: "Vendor 1", value: "vendor1" },
-                  { label: "Vendor 2", value: "vendor2" },
-                  // Add more vendors as needed
-                ]}
-                value={vendor}
-                onChange={handleVendorChange}
-              />
-            </div>
-          </div>
+          </LegacyCard>
           {/* Price */}
           <div style={{ marginTop: "16px" }}>
             <LegacyStack>

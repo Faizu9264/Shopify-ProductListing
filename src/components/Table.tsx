@@ -11,13 +11,15 @@ import EmptyTable from "./EmptyTable";
 import { IndexTable } from "@shopify/polaris";
 import { Text } from "@shopify/polaris";
 import ProductModal from "./ProductModal";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 interface ProductIndexTableProps {
   products: Product[];
 }
-const Table: React.FC<ProductIndexTableProps> = ({ products }) => {
+const Table: React.FC<ProductIndexTableProps> = () => {
   const [selectedTab, setSelectedTab] = useState(0);
-
+  const products = useSelector((state: RootState) => state.products.items);
   const [vendor, setVendor] = useState<string[] | undefined>(undefined);
   const handleVendorRemove = useCallback(() => setVendor(undefined), []);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -250,7 +252,7 @@ const Table: React.FC<ProductIndexTableProps> = ({ products }) => {
       <IndexTable.Cell>
         <div onClick={() => handleProductClick(product)}>
           <img
-            src={product.image}
+            src={product.image[0]}
             alt={product.title}
             style={{ width: "50px", height: "50px" }}
           />

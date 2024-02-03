@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { CaretDownIcon } from "@shopify/polaris-icons";
 import styles from "@/styles/Home.module.css";
 import AddProductModal from "./AddProductModal";
+import { toast } from "react-toastify";
 
 const Navbar: React.FC = () => {
   const [popoverActive, setPopoverActive] = useState(false);
@@ -90,11 +91,7 @@ const Navbar: React.FC = () => {
         open={addProductModalOpen}
         onClose={handleAddProductModalClose}
         onSubmit={() => {
-          // Handle the submit logic here
-          console.log('Product submitted!');
-          // You may want to perform the actual product addition logic here
-          // For example, sending a request to your server to add the product
-          // After the product is successfully added, close the modal
+          toast.success("Product added successfully!");
           handleAddProductModalClose();
         }}
       />
